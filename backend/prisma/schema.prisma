@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SCIENTIST
+  QA
+  VIEWER
+}
+
+enum FormulationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role           @default(SCIENTIST)
+  departmentId  String?
+  department    Department?    @relation(fields: [departmentId], references: [id])
+  formulations  Formulation[]
+  auditLogs     AuditLog[]
+  approvals     Approval[]
+  notifications Notification[]
+  sessions      Session[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Department {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  users        User[]
+  formulations Formulation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Formulation {
+  id           String               @id @default(uuid())
+  name         String
+  category     String?
+  batchSize    Float?
+  unit         String?
+  status       FormulationStatus    @default(DRAFT)
+  ownerId      String
+  owner        User                 @relation(fields: [ownerId], references: [id])
+  departmentId String?
+  department   Department?          @relation(fields: [departmentId], references: [id])
+  versions     FormulationVersion[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
+
+model FormulationVersion {
+  id                String       @id @default(uuid())
+  formulationId     String
+  formulation       Formulation  @relation(fields: [formulationId], references: [id], onDelete: Cascade)
+  versionNumber     String       // e.g., "1.0", "1.1"
+  data              Json         // Snapshot of ingredients and parameters
+  changeReason      String?
+  isApproved        Boolean      @default(false)
+  isLocked          Boolean      @default(false)
+  createdById       String
+  ingredients       FormulationVersionIngredient[]
+  processSteps      ProcessStep[]
+  approvals         Approval[]
+  attachments       Attachment[]
+  createdAt         DateTime     @default(now())
+}
+
+model Ingredient {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  unit        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  formulationVersionIngredients FormulationVersionIngredient[]
+}
+
+model FormulationVersionIngredient {
+  id                   String             @id @default(uuid())
+  formulationVersionId String
+  formulationVersion   FormulationVersion @relation(fields: [formulationVersionId], references: [id], onDelete: Cascade)
+  ingredientId         String
+  ingredient           Ingredient         @relation(fields: [ingredientId], references: [id])
+  percentage           Float?
+  weight               Float?
+  unit                 String
+}
+
+model ProcessStep {
+  id                   String             @id @default(uuid())
+  formulationVersionId String
+  formulationVersion   FormulationVersion @relation(fields: [formulationVersionId], references: [id], onDelete: Cascade)
+  stepNumber           Int
+  description          String
+  temperature          Float?
+  pressure             Float?
+  mixingTime           Int?               // in minutes
+  phLevel              Float?
+  notes                String?
+}
+
+model Approval {
+  id                   String             @id @default(uuid())
+  versionId            String
+  version              FormulationVersion @relation(fields: [versionId], references: [id])
+  qaId                 String
+  qa                   User               @relation(fields: [qaId], references: [id])
+  status               FormulationStatus
+  comments             String?
+  createdAt            DateTime           @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String   // e.g., "CREATE_FORMULATION", "LOGIN"
+  entity    String   // e.g., "Formulation", "User"
+  entityId  String?
+  metadata  Json?    // Stores old vs new values, IP, Browser, etc.
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  type      String   // e.g., "APPROVAL_REQUEST", "VERSION_APPROVED"
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id                   String             @id @default(uuid())
+  versionId            String
+  version              FormulationVersion @relation(fields: [versionId], references: [id])
+  fileName             String
+  fileUrl              String
+  fileType             String
+  uploadedAt           DateTime           @default(now())
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
