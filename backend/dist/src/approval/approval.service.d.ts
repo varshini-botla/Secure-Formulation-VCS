@@ -1,10 +1,24 @@
 import { PrismaService } from '../prisma.service';
 import { FormulationStatus } from '@prisma/client';
+import { NotificationService } from '../notification/notification.service';
 export declare class ApprovalService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private notificationService;
+    constructor(prisma: PrismaService, notificationService: NotificationService);
     submitForApproval(versionId: string, scientistId: string): Promise<{
         formulation: {
+            owner: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                email: string;
+                password: string;
+                firstName: string;
+                lastName: string;
+                role: import(".prisma/client").$Enums.Role;
+                departmentId: string | null;
+            };
+        } & {
             id: string;
             name: string;
             createdAt: Date;
@@ -45,7 +59,37 @@ export declare class ApprovalService {
             firstName: string;
             lastName: string;
         };
-        versions: {
+        versions: ({
+            ingredients: ({
+                ingredient: {
+                    id: string;
+                    name: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    code: string;
+                    description: string | null;
+                    unit: string;
+                };
+            } & {
+                id: string;
+                unit: string;
+                percentage: number | null;
+                weight: number | null;
+                ingredientId: string;
+                formulationVersionId: string;
+            })[];
+            processSteps: {
+                id: string;
+                description: string;
+                stepNumber: number;
+                temperature: number | null;
+                pressure: number | null;
+                mixingTime: number | null;
+                phLevel: number | null;
+                notes: string | null;
+                formulationVersionId: string;
+            }[];
+        } & {
             id: string;
             createdAt: Date;
             data: import("@prisma/client/runtime/library").JsonValue;
@@ -55,7 +99,7 @@ export declare class ApprovalService {
             isLocked: boolean;
             createdById: string;
             formulationId: string;
-        }[];
+        })[];
     } & {
         id: string;
         name: string;

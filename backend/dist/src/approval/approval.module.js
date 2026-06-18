@@ -10,13 +10,17 @@ exports.ApprovalModule = void 0;
 const common_1 = require("@nestjs/common");
 const approval_service_1 = require("./approval.service");
 const approval_controller_1 = require("./approval.controller");
+const prisma_module_1 = require("../prisma.module");
+const notification_module_1 = require("../notification/notification.module");
+const user_module_1 = require("../user/user.module");
 let ApprovalModule = class ApprovalModule {
 };
 exports.ApprovalModule = ApprovalModule;
 exports.ApprovalModule = ApprovalModule = __decorate([
     (0, common_1.Module)({
+        imports: [prisma_module_1.PrismaModule, notification_module_1.NotificationModule, user_module_1.UserModule],
         providers: [approval_service_1.ApprovalService],
-        controllers: [approval_controller_1.ApprovalController]
+        controllers: [approval_controller_1.ApprovalController],
     })
 ], ApprovalModule);
 //# sourceMappingURL=approval.module.js.map

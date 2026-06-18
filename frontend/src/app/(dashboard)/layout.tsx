@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthStore } from '@/store/authStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { 
@@ -28,21 +29,30 @@ const navItems = [
   { name: 'Audit Logs', href: '/audit', icon: History, roles: ['ADMIN', 'QA'] },
   { name: 'Ingredients', href: '/ingredients', icon: Package, roles: ['ADMIN', 'SCIENTIST'] },
   { name: 'Team', href: '/team', icon: ShieldCheck, roles: ['ADMIN'] },
+  { name: 'Departments', href: '/departments', icon: Settings, roles: ['ADMIN'] },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuthStore();
+  const { notifications, fetchNotifications, markAsRead, markAllAsRead } = useNotificationStore();
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
       router.push('/login');
+    } else {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 15000);
+      return () => clearInterval(interval);
     }
   }, [router]);
 
   if (!user) return null;
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 flex">
@@ -53,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            className="w-72 border-r border-white/5 bg-[#0a0a0a] flex flex-col z-50 fixed md:relative h-full"
+            className="w-72 border-r border-white/5 bg-[#0a0a0a] flex flex-col z-50 fixed md:relative h-full animate-in fade-in duration-200"
           >
             <div className="p-6 flex items-center gap-3">
               <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
@@ -106,7 +116,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0a0a0a]/50 backdrop-blur-md sticky top-0 z-40">
+        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0a0a0a]/50 backdrop-blur-md sticky top-0 z-45">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -126,11 +136,66 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative hover:bg-white/5">
-              <Bell className="w-5 h-5 text-zinc-400" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#0a0a0a]"></span>
-            </Button>
+          <div className="flex items-center gap-4 relative">
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative hover:bg-white/5"
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+              >
+                <Bell className="w-5 h-5 text-zinc-400" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2 right-2 w-4 h-4 bg-blue-600 text-[10px] text-white rounded-full flex items-center justify-center font-bold border-2 border-[#0a0a0a]">
+                    {unreadCount}
+                  </span>
+                )}
+              </Button>
+
+              <AnimatePresence>
+                {isNotifOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-96 bg-zinc-950 border border-white/10 rounded-2xl p-4 shadow-2xl z-55 backdrop-blur-xl"
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+                      <span className="font-bold text-sm">Notifications</span>
+                      {unreadCount > 0 && (
+                        <button 
+                          onClick={markAllAsRead}
+                          className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                        >
+                          Mark all as read
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto space-y-3 pr-1">
+                      {notifications.length === 0 ? (
+                        <p className="text-xs text-zinc-500 text-center py-6">No notifications</p>
+                      ) : (
+                        notifications.map((n) => (
+                          <div 
+                            key={n.id} 
+                            onClick={() => !n.isRead && markAsRead(n.id)}
+                            className={`p-3 rounded-xl cursor-pointer transition-all ${
+                              n.isRead ? 'bg-transparent hover:bg-white/5' : 'bg-blue-600/10 hover:bg-blue-600/15 border border-blue-600/20'
+                            }`}
+                          >
+                            <p className="text-xs text-zinc-200">{n.message}</p>
+                            <span className="text-[10px] text-zinc-500 mt-1 block">
+                              {new Date(n.createdAt).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            
             <div className="h-8 w-px bg-white/5 mx-2"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
@@ -149,3 +214,4 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
+

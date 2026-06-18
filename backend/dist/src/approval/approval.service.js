@@ -13,15 +13,18 @@ exports.ApprovalService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma.service");
 const client_1 = require("@prisma/client");
+const notification_service_1 = require("../notification/notification.service");
 let ApprovalService = class ApprovalService {
     prisma;
-    constructor(prisma) {
+    notificationService;
+    constructor(prisma, notificationService) {
         this.prisma = prisma;
+        this.notificationService = notificationService;
     }
     async submitForApproval(versionId, scientistId) {
         const version = await this.prisma.formulationVersion.findUnique({
             where: { id: versionId },
-            include: { formulation: true },
+            include: { formulation: { include: { owner: true } } },
         });
         if (!version)
             throw new common_1.NotFoundException('Version not found');
@@ -29,16 +32,29 @@ let ApprovalService = class ApprovalService {
             where: { id: version.formulationId },
             data: { status: client_1.FormulationStatus.SUBMITTED },
         });
+        const qas = await this.prisma.user.findMany({
+            where: { role: client_1.Role.QA },
+        });
+        const scientistName = `${version.formulation.owner.firstName} ${version.formulation.owner.lastName}`;
+        for (const qa of qas) {
+            await this.notificationService.create({
+                userId: qa.id,
+                message: `Formulation "${version.formulation.name}" (v${version.versionNumber}) submitted for approval by ${scientistName}.`,
+                type: 'APPROVAL_REQUEST',
+            });
+        }
         return version;
     }
     async approveOrReject(params) {
         const { versionId, qaId, status, comments } = params;
         const version = await this.prisma.formulationVersion.findUnique({
             where: { id: versionId },
-            include: { formulation: true },
+            include: { formulation: { include: { owner: true } } },
         });
         if (!version)
             throw new common_1.NotFoundException('Version not found');
+        const qaUser = await this.prisma.user.findUnique({ where: { id: qaId } });
+        const qaName = qaUser ? `${qaUser.firstName} ${qaUser.lastName}` : 'QA';
         await this.prisma.formulation.update({
             where: { id: version.formulationId },
             data: { status: status },
@@ -57,18 +73,30 @@ let ApprovalService = class ApprovalService {
                 data: { isApproved: true, isLocked: true },
             });
         }
+        await this.notificationService.create({
+            userId: version.formulation.ownerId,
+            message: `Your formulation "${version.formulation.name}" (v${version.versionNumber}) was ${status} by ${qaName}.${comments ? ` Reason: ${comments}` : ''}`,
+            type: status === client_1.FormulationStatus.APPROVED
+                ? 'VERSION_APPROVED'
+                : 'VERSION_REJECTED',
+        });
         return approval;
     }
     async getQueue() {
         return this.prisma.formulation.findMany({
             where: {
-                status: { in: [client_1.FormulationStatus.SUBMITTED, client_1.FormulationStatus.UNDER_REVIEW] },
+                status: {
+                    in: [client_1.FormulationStatus.SUBMITTED, client_1.FormulationStatus.UNDER_REVIEW],
+                },
             },
             include: {
                 owner: { select: { firstName: true, lastName: true } },
                 versions: {
                     orderBy: { createdAt: 'desc' },
-                    take: 1,
+                    include: {
+                        ingredients: { include: { ingredient: true } },
+                        processSteps: true,
+                    },
                 },
             },
         });
@@ -77,6 +105,7 @@ let ApprovalService = class ApprovalService {
 exports.ApprovalService = ApprovalService;
 exports.ApprovalService = ApprovalService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notification_service_1.NotificationService])
 ], ApprovalService);
 //# sourceMappingURL=approval.service.js.map

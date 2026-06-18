@@ -19,47 +19,49 @@ let FormulationService = class FormulationService {
         this.prisma = prisma;
     }
     async create(data) {
-        const formulation = await this.prisma.formulation.create({
-            data: {
-                name: data.name,
-                category: data.category,
-                batchSize: data.batchSize,
-                unit: data.unit,
-                ownerId: data.ownerId,
-                status: client_1.FormulationStatus.DRAFT,
-            },
-        });
-        const version = await this.prisma.formulationVersion.create({
-            data: {
-                formulationId: formulation.id,
-                versionNumber: '1.0',
-                data: { ingredients: data.ingredients, steps: data.processSteps },
-                createdById: data.ownerId,
-                ingredients: {
-                    create: data.ingredients.map((ing) => ({
-                        ingredientId: ing.ingredientId,
-                        percentage: ing.percentage,
-                        weight: ing.weight,
-                        unit: ing.unit,
-                    })),
+        return this.prisma.$transaction(async (tx) => {
+            const formulation = await tx.formulation.create({
+                data: {
+                    name: data.name,
+                    category: data.category,
+                    batchSize: data.batchSize,
+                    unit: data.unit,
+                    ownerId: data.ownerId,
+                    status: client_1.FormulationStatus.DRAFT,
                 },
-                processSteps: {
-                    create: data.processSteps.map((step, index) => ({
-                        stepNumber: index + 1,
-                        description: step.description,
-                        temperature: step.temperature,
-                        pressure: step.pressure,
-                        mixingTime: step.mixingTime,
-                        phLevel: step.phLevel,
-                        notes: step.notes,
-                    })),
+            });
+            const version = await tx.formulationVersion.create({
+                data: {
+                    formulationId: formulation.id,
+                    versionNumber: '1.0',
+                    data: { ingredients: data.ingredients, steps: data.processSteps },
+                    createdById: data.ownerId,
+                    ingredients: {
+                        create: data.ingredients.map((ing) => ({
+                            ingredientId: ing.ingredientId,
+                            percentage: ing.percentage,
+                            weight: ing.weight,
+                            unit: ing.unit,
+                        })),
+                    },
+                    processSteps: {
+                        create: data.processSteps.map((step, index) => ({
+                            stepNumber: index + 1,
+                            description: step.description,
+                            temperature: step.temperature,
+                            pressure: step.pressure,
+                            mixingTime: step.mixingTime,
+                            phLevel: step.phLevel,
+                            notes: step.notes,
+                        })),
+                    },
                 },
-            },
+            });
+            return { formulation, version };
         });
-        return { formulation, version };
     }
     async updateVersion(params) {
-        const { formulationId, userId, changeReason, ingredients, processSteps, isMajor } = params;
+        const { formulationId, userId, changeReason, ingredients, processSteps, isMajor, } = params;
         const lastVersion = await this.prisma.formulationVersion.findFirst({
             where: { formulationId },
             orderBy: { createdAt: 'desc' },
@@ -68,6 +70,10 @@ let FormulationService = class FormulationService {
             throw new common_1.NotFoundException('No versions found');
         const [major, minor] = lastVersion.versionNumber.split('.').map(Number);
         const nextVersion = isMajor ? `${major + 1}.0` : `${major}.${minor + 1}`;
+        await this.prisma.formulation.update({
+            where: { id: formulationId },
+            data: { status: client_1.FormulationStatus.DRAFT },
+        });
         return this.prisma.formulationVersion.create({
             data: {
                 formulationId,
@@ -97,15 +103,26 @@ let FormulationService = class FormulationService {
             },
         });
     }
+    async update(id, data) {
+        return this.prisma.formulation.update({
+            where: { id },
+            data,
+        });
+    }
+    async remove(id) {
+        return this.prisma.formulation.delete({
+            where: { id },
+        });
+    }
     async findAll() {
         return this.prisma.formulation.findMany({
             include: {
                 owner: { select: { firstName: true, lastName: true } },
                 versions: {
                     orderBy: { createdAt: 'desc' },
-                    take: 1,
                 },
             },
+            orderBy: { updatedAt: 'desc' },
         });
     }
     async findOne(id) {
@@ -118,6 +135,7 @@ let FormulationService = class FormulationService {
                     include: {
                         ingredients: { include: { ingredient: true } },
                         processSteps: true,
+                        attachments: true,
                     },
                 },
             },

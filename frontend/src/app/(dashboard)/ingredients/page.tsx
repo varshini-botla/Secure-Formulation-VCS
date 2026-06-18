@@ -14,16 +14,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, Beaker, Package, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    fetchIngredients();
-  }, []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newIngredient, setNewIngredient] = useState({
+    name: '',
+    code: '',
+    description: '',
+    unit: 'kg'
+  });
 
   const fetchIngredients = async () => {
     try {
@@ -33,6 +36,22 @@ export default function IngredientsPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIngredients();
+  }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/ingredients', newIngredient);
+      setIsModalOpen(false);
+      setNewIngredient({ name: '', code: '', description: '', unit: 'kg' });
+      fetchIngredients();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -53,11 +72,77 @@ export default function IngredientsPage() {
             <p className="text-zinc-500 mt-1">Chemical catalog and standardized unit management.</p>
           </div>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20">
+        <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20" onClick={() => setIsModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Import Materials
+          Register Ingredient
         </Button>
       </div>
+
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-zinc-950 border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6"
+            >
+              <div>
+                <h2 className="text-xl font-bold">Register New Material</h2>
+                <p className="text-xs text-zinc-500 mt-1">Add a standardized chemical or solvent to the registry.</p>
+              </div>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-zinc-400">Material Name</label>
+                  <Input 
+                    required
+                    className="bg-white/5 border-white/10" 
+                    placeholder="e.g. Paracetamol USP" 
+                    value={newIngredient.name}
+                    onChange={e => setNewIngredient({...newIngredient, name: e.target.value})}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-zinc-400">Unique Code</label>
+                    <Input 
+                      required
+                      className="bg-white/5 border-white/10" 
+                      placeholder="e.g. PAR-500" 
+                      value={newIngredient.code}
+                      onChange={e => setNewIngredient({...newIngredient, code: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-zinc-400">Standard Unit</label>
+                    <Input 
+                      required
+                      className="bg-white/5 border-white/10" 
+                      placeholder="e.g. kg, L, g" 
+                      value={newIngredient.unit}
+                      onChange={e => setNewIngredient({...newIngredient, unit: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-zinc-400">Description</label>
+                  <textarea 
+                    className="w-full bg-white/5 border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Describe usage or grade..."
+                    rows={3}
+                    value={newIngredient.description}
+                    onChange={e => setNewIngredient({...newIngredient, description: e.target.value})}
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+                  <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save Material</Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
         <div className="relative w-full max-w-md">

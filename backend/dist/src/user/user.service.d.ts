@@ -7,7 +7,7 @@ export declare class UserService {
     createUser(data: Prisma.UserCreateInput): Promise<User>;
     updateUser(params: {
         where: Prisma.UserWhereUniqueInput;
-        data: Prisma.UserUpdateInput;
+        data: any;
     }): Promise<User>;
     findAll(): Promise<({
         department: {
@@ -27,4 +27,15 @@ export declare class UserService {
         role: import(".prisma/client").$Enums.Role;
         departmentId: string | null;
     })[]>;
+    remove(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        email: string;
+        password: string;
+        firstName: string;
+        lastName: string;
+        role: import(".prisma/client").$Enums.Role;
+        departmentId: string | null;
+    }>;
 }

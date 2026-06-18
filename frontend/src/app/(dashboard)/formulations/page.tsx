@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { 
   Table, 
@@ -33,13 +34,10 @@ import {
 import { motion } from 'framer-motion';
 
 export default function FormulationsPage() {
+  const router = useRouter();
   const [formulations, setFormulations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    fetchFormulations();
-  }, []);
 
   const fetchFormulations = async () => {
     try {
@@ -51,6 +49,10 @@ export default function FormulationsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchFormulations();
+  }, []);
 
   const statusColors: any = {
     DRAFT: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
@@ -72,7 +74,7 @@ export default function FormulationsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Formulation Repository</h1>
           <p className="text-zinc-500 mt-1">Manage and track version history of your chemical products.</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20">
+        <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20" onClick={() => router.push('/formulations/create')}>
           <Plus className="w-4 h-4 mr-2" />
           Create New Formulation
         </Button>
@@ -177,11 +179,11 @@ export default function FormulationsPage() {
                       <Eye className="w-4 h-4" />
                     </Button>
                     <DropdownMenu>
-                      <DropdownMenuTrigger>
+                      <DropdownMenuTrigger render={
                         <Button variant="ghost" size="icon" className="hover:bg-white/10">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
-                      </DropdownMenuTrigger>
+                      } />
                       <DropdownMenuContent align="end" className="bg-[#18181b] border-white/10 text-white">
                         <DropdownMenuItem className="hover:bg-white/5 cursor-pointer">
                           <History className="w-4 h-4 mr-2" /> Version History

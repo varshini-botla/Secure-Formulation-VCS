@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CreateFormulationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const forkId = searchParams.get('fork');
   const [step, setStep] = useState(1);
   const [availableIngredients, setAvailableIngredients] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -21,11 +23,9 @@ export default function CreateFormulationPage() {
     unit: 'kg',
     ingredients: [] as any[],
     processSteps: [] as any[],
+    changeReason: '',
+    isMajor: false,
   });
-
-  useEffect(() => {
-    fetchIngredients();
-  }, []);
 
   const fetchIngredients = async () => {
     try {
@@ -35,6 +35,42 @@ export default function CreateFormulationPage() {
       console.error(err);
     }
   };
+
+  const fetchFormulationForFork = async (id: string) => {
+    try {
+      const { data } = await api.get(`/formulations/${id}`);
+      const latestVersion = data.versions[0];
+      setFormData({
+        name: data.name,
+        category: data.category || 'Pharmaceutical',
+        batchSize: data.batchSize || 100,
+        unit: data.unit || 'kg',
+        ingredients: latestVersion.ingredients.map((ing: any) => ({
+          ingredientId: ing.ingredientId,
+          weight: ing.weight,
+          percentage: ing.percentage,
+          unit: ing.unit,
+        })),
+        processSteps: latestVersion.processSteps.map((step: any) => ({
+          description: step.description,
+          temperature: step.temperature,
+          pressure: step.pressure,
+          mixingTime: step.mixingTime,
+        })),
+        changeReason: '',
+        isMajor: false,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchIngredients();
+    if (forkId) {
+      fetchFormulationForFork(forkId);
+    }
+  }, [forkId]);
 
   const addIngredient = () => {
     setFormData({
@@ -57,9 +93,23 @@ export default function CreateFormulationPage() {
   };
 
   const handleSubmit = async () => {
+    const cleanedIngredients = formData.ingredients.filter(ing => ing.ingredientId !== '');
     try {
-      await api.post('/formulations', formData);
-      router.push('/formulations');
+      if (forkId) {
+        await api.post(`/formulations/${forkId}/version`, {
+          changeReason: formData.changeReason || 'Updated formulation parameters',
+          ingredients: cleanedIngredients,
+          processSteps: formData.processSteps,
+          isMajor: formData.isMajor
+        });
+        router.push(`/formulations/${forkId}`);
+      } else {
+        await api.post('/formulations', {
+          ...formData,
+          ingredients: cleanedIngredients
+        });
+        router.push('/formulations');
+      }
     } catch (err) {
       console.error(err);
     }
@@ -72,7 +122,7 @@ export default function CreateFormulationPage() {
            <Button variant="ghost" onClick={() => router.back()}>
              <ArrowLeft className="w-4 h-4 mr-2" /> Cancel
            </Button>
-           <h1 className="text-3xl font-bold">New Formulation Entry</h1>
+           <h1 className="text-3xl font-bold">{forkId ? 'Draft Formulation Version' : 'New Formulation Entry'}</h1>
         </div>
         <div className="flex items-center gap-2">
            {[1, 2, 3].map((s) => (
@@ -86,56 +136,99 @@ export default function CreateFormulationPage() {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <Card className="bg-white/5 border-white/10 backdrop-blur-xl">
               <CardHeader>
-                <CardTitle>Basic Configuration</CardTitle>
-                <CardDescription>Setup the core details of the pharmaceutical product.</CardDescription>
+                <CardTitle>{forkId ? 'New Version Metadata' : 'Basic Configuration'}</CardTitle>
+                <CardDescription>
+                  {forkId ? 'Define parameters and document changes for the new formulation version.' : 'Setup the core details of the pharmaceutical product.'}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Product Name</Label>
-                    <Input 
-                      className="bg-black/20 border-white/10"
-                      placeholder="e.g. Paracetamol Extra"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
+                {forkId ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>Formulation Name</Label>
+                        <Input 
+                          className="bg-black/20 border-white/10 opacity-60"
+                          value={formData.name}
+                          disabled
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Version Bump Type</Label>
+                        <select 
+                          className="w-full bg-[#18181b] border border-white/10 rounded-md px-3 py-2 text-sm"
+                          value={formData.isMajor ? 'true' : 'false'}
+                          onChange={(e) => setFormData({...formData, isMajor: e.target.value === 'true'})}
+                        >
+                          <option value="false">Minor Update (e.g. 1.0 to 1.1)</option>
+                          <option value="true">Major Release (e.g. 1.0 to 2.0)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Change Reason / Commit Message</Label>
+                      <Input 
+                        className="bg-black/20 border-white/10"
+                        placeholder="e.g. Optimized ethanol ratio to reduce mixing time"
+                        value={formData.changeReason}
+                        onChange={(e) => setFormData({...formData, changeReason: e.target.value})}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <select 
-                      className="w-full bg-[#18181b] border border-white/10 rounded-md px-3 py-2 text-sm"
-                      value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    >
-                      <option value="Pharmaceutical">Pharmaceutical</option>
-                      <option value="Chemical">Chemical</option>
-                      <option value="Research">Research Extra</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Default Batch Size</Label>
-                    <Input 
-                      type="number"
-                      className="bg-black/20 border-white/10"
-                      value={formData.batchSize}
-                      onChange={(e) => setFormData({...formData, batchSize: Number(e.target.value)})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Primary Unit</Label>
-                    <Input 
-                      className="bg-black/20 border-white/10"
-                      value={formData.unit}
-                      onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                    />
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>Product Name</Label>
+                        <Input 
+                          className="bg-black/20 border-white/10"
+                          placeholder="e.g. Paracetamol Extra"
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Category</Label>
+                        <select 
+                          className="w-full bg-[#18181b] border border-white/10 rounded-md px-3 py-2 text-sm"
+                          value={formData.category}
+                          onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        >
+                          <option value="Pharmaceutical">Pharmaceutical</option>
+                          <option value="Chemical">Chemical</option>
+                          <option value="Research">Research Extra</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>Default Batch Size</Label>
+                        <Input 
+                          type="number"
+                          className="bg-black/20 border-white/10"
+                          value={formData.batchSize}
+                          onChange={(e) => setFormData({...formData, batchSize: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Primary Unit</Label>
+                        <Input 
+                          className="bg-black/20 border-white/10"
+                          value={formData.unit}
+                          onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
                 <div className="pt-6 flex justify-end">
-                   <Button className="bg-blue-600" onClick={() => setStep(2)}>
-                     Continue to Composition <ArrowRight className="w-4 h-4 ml-2" />
-                   </Button>
+                  <Button 
+                    className="bg-blue-600" 
+                    onClick={() => setStep(2)}
+                    disabled={!!(forkId && !formData.changeReason)}
+                  >
+                    Continue to Composition <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>

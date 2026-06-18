@@ -45,6 +45,12 @@ let AuditInterceptor = class AuditInterceptor {
             return 'Auth';
         if (url.includes('ingredients'))
             return 'Ingredient';
+        if (url.includes('approvals'))
+            return 'Approval';
+        if (url.includes('users'))
+            return 'User';
+        if (url.includes('departments'))
+            return 'Department';
         return 'System';
     }
 };

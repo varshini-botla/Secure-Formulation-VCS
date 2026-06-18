@@ -16,7 +16,7 @@ exports.FormulationModule = FormulationModule;
 exports.FormulationModule = FormulationModule = __decorate([
     (0, common_1.Module)({
         providers: [formulation_service_1.FormulationService],
-        controllers: [formulation_controller_1.FormulationController]
+        controllers: [formulation_controller_1.FormulationController],
     })
 ], FormulationModule);
 //# sourceMappingURL=formulation.module.js.map

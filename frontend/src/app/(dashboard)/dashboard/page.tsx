@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,29 +28,43 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 
-const data = [
-  { name: 'Jan', count: 12 },
-  { name: 'Feb', count: 18 },
-  { name: 'Mar', count: 25 },
-  { name: 'Apr', count: 32 },
-  { name: 'May', count: 28 },
-  { name: 'Jun', count: 35 },
-];
-
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState({
-    total: 124,
-    pending: 12,
-    approved: 108,
-    risks: 3
+    total: 0,
+    pending: 0,
+    approved: 0,
+    risks: 0
   });
 
-  const [recentActivity] = useState([
-    { id: 1, user: 'Dr. Marie Curie', action: 'Created Version v1.4', target: 'Aspirin Gold-500', time: '10 mins ago', status: 'DRAFT' },
-    { id: 2, user: 'John Doe (QA)', action: 'Approved Version v2.0', target: 'Ethanol Solv-99', time: '2 hours ago', status: 'APPROVED' },
-    { id: 3, user: 'Dr. Marie Curie', action: 'Submitted for Review', target: 'Lidocaine Base', time: '5 hours ago', status: 'SUBMITTED' },
-    { id: 4, user: 'System', action: 'Auto-locked Version v1.0', target: 'Zinc Oxide Paste', time: '1 day ago', status: 'LOCKED' },
-  ]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboard = async () => {
+    try {
+      const { data: resData } = await api.get('/analytics/dashboard');
+      setStats(resData.stats);
+      setRecentActivity(resData.recentActivity);
+      setChartData(resData.chartData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -64,7 +79,7 @@ export default function DashboardPage() {
             <FileText className="w-4 h-4 mr-2" />
             Export Audit
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20">
+          <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20" onClick={() => router.push('/formulations/create')}>
             <Plus className="w-4 h-4 mr-2" />
             New Formulation
           </Button>
@@ -116,7 +131,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="h-[400px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>

@@ -40,6 +40,9 @@ export class AuditInterceptor implements NestInterceptor {
     if (url.includes('formulations')) return 'Formulation';
     if (url.includes('auth')) return 'Auth';
     if (url.includes('ingredients')) return 'Ingredient';
+    if (url.includes('approvals')) return 'Approval';
+    if (url.includes('users')) return 'User';
+    if (url.includes('departments')) return 'Department';
     return 'System';
   }
 }

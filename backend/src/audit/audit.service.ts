@@ -25,7 +25,9 @@ export class AuditService {
 
   async findAll() {
     return this.prisma.auditLog.findMany({
-      include: { user: { select: { firstName: true, lastName: true, email: true } } },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

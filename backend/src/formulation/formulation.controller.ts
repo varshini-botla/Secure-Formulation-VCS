@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { FormulationService } from './formulation.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -31,11 +41,27 @@ export class FormulationController {
 
   @Post(':id/version')
   @Roles(Role.SCIENTIST, Role.ADMIN)
-  async createVersion(@Param('id') id: string, @Body() updateDto, @Request() req) {
+  async createVersion(
+    @Param('id') id: string,
+    @Body() updateDto,
+    @Request() req,
+  ) {
     return this.formulationService.updateVersion({
       formulationId: id,
       userId: req.user.userId,
       ...updateDto,
     });
+  }
+
+  @Put(':id')
+  @Roles(Role.SCIENTIST, Role.ADMIN)
+  async update(@Param('id') id: string, @Body() updateDto) {
+    return this.formulationService.update(id, updateDto);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  async remove(@Param('id') id: string) {
+    return this.formulationService.remove(id);
   }
 }

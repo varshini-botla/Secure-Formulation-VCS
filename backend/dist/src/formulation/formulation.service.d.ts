@@ -1,5 +1,5 @@
 import { PrismaService } from '../prisma.service';
-import { Prisma } from '@prisma/client';
+import { FormulationStatus, Prisma } from '@prisma/client';
 export declare class FormulationService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -53,6 +53,36 @@ export declare class FormulationService {
         isLocked: boolean;
         createdById: string;
         formulationId: string;
+    }>;
+    update(id: string, data: {
+        name?: string;
+        category?: string;
+        batchSize?: number;
+        unit?: string;
+        status?: FormulationStatus;
+    }): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        departmentId: string | null;
+        unit: string | null;
+        status: import(".prisma/client").$Enums.FormulationStatus;
+        category: string | null;
+        batchSize: number | null;
+        ownerId: string;
+    }>;
+    remove(id: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        departmentId: string | null;
+        unit: string | null;
+        status: import(".prisma/client").$Enums.FormulationStatus;
+        category: string | null;
+        batchSize: number | null;
+        ownerId: string;
     }>;
     findAll(): Promise<({
         owner: {
@@ -123,6 +153,14 @@ export declare class FormulationService {
                 phLevel: number | null;
                 notes: string | null;
                 formulationVersionId: string;
+            }[];
+            attachments: {
+                id: string;
+                fileName: string;
+                fileUrl: string;
+                fileType: string;
+                uploadedAt: Date;
+                versionId: string;
             }[];
         } & {
             id: string;

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ApprovalService } from './approval.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -18,7 +26,11 @@ export class ApprovalController {
 
   @Post('review/:versionId')
   @Roles(Role.QA, Role.ADMIN)
-  async review(@Param('versionId') versionId: string, @Body() body, @Request() req) {
+  async review(
+    @Param('versionId') versionId: string,
+    @Body() body,
+    @Request() req,
+  ) {
     return this.approvalService.approveOrReject({
       versionId,
       qaId: req.user.userId,

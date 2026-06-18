@@ -97,6 +97,14 @@ export declare class FormulationController {
                 notes: string | null;
                 formulationVersionId: string;
             }[];
+            attachments: {
+                id: string;
+                fileName: string;
+                fileUrl: string;
+                fileType: string;
+                uploadedAt: Date;
+                versionId: string;
+            }[];
         } & {
             id: string;
             createdAt: Date;
@@ -130,5 +138,29 @@ export declare class FormulationController {
         isLocked: boolean;
         createdById: string;
         formulationId: string;
+    }>;
+    update(id: string, updateDto: any): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        departmentId: string | null;
+        unit: string | null;
+        status: import(".prisma/client").$Enums.FormulationStatus;
+        category: string | null;
+        batchSize: number | null;
+        ownerId: string;
+    }>;
+    remove(id: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        departmentId: string | null;
+        unit: string | null;
+        status: import(".prisma/client").$Enums.FormulationStatus;
+        category: string | null;
+        batchSize: number | null;
+        ownerId: string;
     }>;
 }

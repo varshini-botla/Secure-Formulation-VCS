@@ -16,4 +16,17 @@ export class IngredientService {
   async create(data: any) {
     return this.prisma.ingredient.create({ data });
   }
+
+  async update(id: string, data: any) {
+    return this.prisma.ingredient.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async remove(id: string) {
+    return this.prisma.ingredient.delete({
+      where: { id },
+    });
+  }
 }

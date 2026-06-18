@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
@@ -47,7 +51,9 @@ export class AuthService {
 
     if (department) {
       const dep = await this.prisma.department.findUnique({
-        where: { name: department === 'Research & Development' ? 'R&D' : department },
+        where: {
+          name: department === 'Research & Development' ? 'R&D' : department,
+        },
       });
       if (dep) {
         departmentId = dep.id;

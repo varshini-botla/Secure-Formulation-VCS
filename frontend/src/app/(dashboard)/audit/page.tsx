@@ -20,10 +20,6 @@ export default function AuditLogsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchLogs();
-  }, []);
-
   const fetchLogs = async () => {
     try {
       const { data } = await api.get('/audit-logs');
@@ -34,6 +30,10 @@ export default function AuditLogsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
 
   const filtered = logs.filter(l => 
     l.action.toLowerCase().includes(search.toLowerCase()) ||

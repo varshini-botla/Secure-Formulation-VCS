@@ -88,7 +88,9 @@ let AuthService = class AuthService {
         let departmentId = null;
         if (department) {
             const dep = await this.prisma.department.findUnique({
-                where: { name: department === 'Research & Development' ? 'R&D' : department },
+                where: {
+                    name: department === 'Research & Development' ? 'R&D' : department,
+                },
             });
             if (dep) {
                 departmentId = dep.id;

@@ -16,6 +16,9 @@ exports.IngredientController = void 0;
 const common_1 = require("@nestjs/common");
 const ingredient_service_1 = require("./ingredient.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../auth/roles.guard");
+const roles_decorator_1 = require("../auth/roles.decorator");
+const client_1 = require("@prisma/client");
 let IngredientController = class IngredientController {
     ingredientService;
     constructor(ingredientService) {
@@ -29,6 +32,12 @@ let IngredientController = class IngredientController {
     }
     async create(data) {
         return this.ingredientService.create(data);
+    }
+    async update(id, data) {
+        return this.ingredientService.update(id, data);
+    }
+    async remove(id) {
+        return this.ingredientService.remove(id);
     }
 };
 exports.IngredientController = IngredientController;
@@ -47,14 +56,32 @@ __decorate([
 ], IngredientController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, roles_decorator_1.Roles)(client_1.Role.SCIENTIST, client_1.Role.ADMIN),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], IngredientController.prototype, "create", null);
+__decorate([
+    (0, common_1.Put)(':id'),
+    (0, roles_decorator_1.Roles)(client_1.Role.SCIENTIST, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], IngredientController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], IngredientController.prototype, "remove", null);
 exports.IngredientController = IngredientController = __decorate([
     (0, common_1.Controller)('ingredients'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [ingredient_service_1.IngredientService])
 ], IngredientController);
 //# sourceMappingURL=ingredient.controller.js.map

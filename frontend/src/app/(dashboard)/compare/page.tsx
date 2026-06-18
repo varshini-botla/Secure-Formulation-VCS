@@ -18,10 +18,6 @@ export default function ComparePage() {
   const [v2, setV2] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) fetchVersions();
-  }, [id]);
-
   const fetchVersions = async () => {
     try {
       const { data } = await api.get(`/formulations/${id}`);
@@ -33,6 +29,10 @@ export default function ComparePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (id) fetchVersions();
+  }, [id]);
 
   if (loading) return <div>Analyzing snapshots...</div>;
 

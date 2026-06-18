@@ -17,6 +17,10 @@ const user_module_1 = require("./user/user.module");
 const formulation_module_1 = require("./formulation/formulation.module");
 const audit_module_1 = require("./audit/audit.module");
 const ingredient_module_1 = require("./ingredient/ingredient.module");
+const notification_module_1 = require("./notification/notification.module");
+const attachment_module_1 = require("./attachment/attachment.module");
+const analytics_module_1 = require("./analytics/analytics.module");
+const department_module_1 = require("./department/department.module");
 const audit_interceptor_1 = require("./audit/audit.interceptor");
 const core_1 = require("@nestjs/core");
 const approval_module_1 = require("./approval/approval.module");
@@ -34,6 +38,10 @@ exports.AppModule = AppModule = __decorate([
             audit_module_1.AuditModule,
             ingredient_module_1.IngredientModule,
             approval_module_1.ApprovalModule,
+            notification_module_1.NotificationModule,
+            attachment_module_1.AttachmentModule,
+            analytics_module_1.AnalyticsModule,
+            department_module_1.DepartmentModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

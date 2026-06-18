@@ -26,6 +26,17 @@ let IngredientService = class IngredientService {
     async create(data) {
         return this.prisma.ingredient.create({ data });
     }
+    async update(id, data) {
+        return this.prisma.ingredient.update({
+            where: { id },
+            data,
+        });
+    }
+    async remove(id) {
+        return this.prisma.ingredient.delete({
+            where: { id },
+        });
+    }
 };
 exports.IngredientService = IngredientService;
 exports.IngredientService = IngredientService = __decorate([

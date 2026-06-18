@@ -35,10 +35,6 @@ export default function FormulationDetailsPage() {
   const [formulation, setFormulation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchFormulation();
-  }, [id]);
-
   const fetchFormulation = async () => {
     try {
       const { data } = await api.get(`/formulations/${id}`);
@@ -50,6 +46,10 @@ export default function FormulationDetailsPage() {
     }
   };
 
+  useEffect(() => {
+    fetchFormulation();
+  }, [id]);
+
   const handleApprove = async (status: string) => {
     try {
       await api.post(`/approvals/review/${formulation.versions[0].id}`, { status, comments: 'Approved via dashboard' });
@@ -59,7 +59,52 @@ export default function FormulationDetailsPage() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const handleSubmitForApproval = async () => {
+    try {
+      await api.post(`/approvals/submit/${formulation.versions[0].id}`);
+      fetchFormulation();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      await api.post(`/attachments/upload/${formulation.versions[0].id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      fetchFormulation();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDownloadAttachment = async (id: string, fileName: string) => {
+    try {
+      const { data } = await api.get(`/attachments/download/${id}`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return (
+    <div className="flex h-96 items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+  );
   if (!formulation) return <div>Not found</div>;
 
   const currentVersion = formulation.versions[0];
@@ -99,9 +144,14 @@ export default function FormulationDetailsPage() {
         </div>
 
         <div className="flex flex-wrap gap-3 z-10">
-          <Button variant="outline" className="bg-white/5 border-white/10">
-            <Printer className="w-4 h-4 mr-2" /> Export PDF
+          <Button variant="outline" className="bg-white/5 border-white/10" onClick={() => window.print()}>
+            <Printer className="w-4 h-4 mr-2" /> Print Sheet
           </Button>
+          {(user?.role === 'SCIENTIST' || user?.role === 'ADMIN') && (formulation.status === 'DRAFT' || formulation.status === 'REJECTED') && (
+            <Button className="bg-amber-600 hover:bg-amber-700" onClick={handleSubmitForApproval}>
+              <ClipboardCheck className="w-4 h-4 mr-2" /> Submit for Approval
+            </Button>
+          )}
           {(user?.role === 'QA' || user?.role === 'ADMIN') && formulation.status === 'SUBMITTED' && (
             <>
               <Button className="bg-rose-600 hover:bg-rose-700" onClick={() => handleApprove('REJECTED')}>
@@ -113,7 +163,7 @@ export default function FormulationDetailsPage() {
             </>
           )}
           {(user?.role === 'SCIENTIST' || user?.role === 'ADMIN') && (
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => router.push(`/formulations/create?fork=${id}`)}>
               <Edit className="w-4 h-4 mr-2" /> Draft New Version
             </Button>
           )}
@@ -210,6 +260,71 @@ export default function FormulationDetailsPage() {
                   </CardContent>
                 </Card>
               ))}
+            </TabsContent>
+
+            <TabsContent value="documents" className="mt-6">
+              <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Attachments & Verification Documents</CardTitle>
+                  <CardDescription>Upload supporting PDFs, images, or test records for this formulation version.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Upload Dropzone */}
+                  <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center hover:border-blue-500/50 transition-colors relative group">
+                    <input 
+                      type="file" 
+                      onChange={handleFileUpload} 
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    />
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="p-3 bg-blue-600/10 rounded-full text-blue-400 group-hover:scale-110 transition-transform">
+                        <Plus className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">Drag & drop files here, or click to browse</p>
+                        <p className="text-xs text-zinc-500 mt-1">Supports PDF, PNG, JPEG, TXT, JSON up to 10MB</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Attachments List */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-sm text-zinc-400">Uploaded Documents ({currentVersion.attachments?.length || 0})</h3>
+                    {!currentVersion.attachments || currentVersion.attachments.length === 0 ? (
+                      <p className="text-xs text-zinc-500 italic">No attachments uploaded yet.</p>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-3">
+                        {currentVersion.attachments.map((att: any) => (
+                          <div key={att.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{att.fileName}</span>
+                              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mt-0.5">{att.fileType}</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="bg-white/5 border-white/10 text-xs text-blue-400 hover:text-blue-300"
+                                onClick={() => window.open(`${api.defaults.baseURL}${att.fileUrl}`, '_blank')}
+                              >
+                                Preview
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="bg-white/5 border-white/10 text-xs text-zinc-400 hover:text-zinc-200"
+                                onClick={() => handleDownloadAttachment(att.id, att.fileName)}
+                              >
+                                Download
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

@@ -16,7 +16,7 @@ exports.IngredientModule = IngredientModule;
 exports.IngredientModule = IngredientModule = __decorate([
     (0, common_1.Module)({
         providers: [ingredient_service_1.IngredientService],
-        controllers: [ingredient_controller_1.IngredientController]
+        controllers: [ingredient_controller_1.IngredientController],
     })
 ], IngredientModule);
 //# sourceMappingURL=ingredient.module.js.map

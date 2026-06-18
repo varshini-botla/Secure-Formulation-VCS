@@ -4,6 +4,6 @@ import { FormulationController } from './formulation.controller';
 
 @Module({
   providers: [FormulationService],
-  controllers: [FormulationController]
+  controllers: [FormulationController],
 })
 export class FormulationModule {}
