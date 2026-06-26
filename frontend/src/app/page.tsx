@@ -4,10 +4,11 @@ import { Shield, FlaskConical, GitBranch, Lock, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 selection:bg-blue-500/30">
+    <div className="min-h-screen bg-background text-foreground selection:bg-blue-500/30">
       {/* Abstract Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse"></div>
@@ -16,7 +17,7 @@ export default function Home() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5 backdrop-blur-sm bg-black/20">
+      <nav className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-border backdrop-blur-sm bg-background/20">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
             <FlaskConical className="w-6 h-6 text-white" />
@@ -24,8 +25,9 @@ export default function Home() {
           <span className="font-bold text-xl tracking-tight">SECURE VCS</span>
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <Link href="/login">
-            <Button variant="ghost" className="text-zinc-400 hover:text-white hover:bg-white/5">Sign In</Button>
+            <Button variant="ghost" className="text-zinc-400 hover:text-foreground hover:bg-muted">Sign In</Button>
           </Link>
           <Link href="/register">
             <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20">Get Started</Button>

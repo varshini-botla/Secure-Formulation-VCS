@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'SCIENTIST', 'QA', 'VIEWER'] },
@@ -55,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 flex">
+    <div className="min-h-screen bg-background text-foreground flex">
       {/* Sidebar */}
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
@@ -63,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
-            className="w-72 border-r border-white/5 bg-[#0a0a0a] flex flex-col z-50 fixed md:relative h-full animate-in fade-in duration-200"
+            className="w-72 border-r border-border bg-card flex flex-col z-50 fixed md:relative h-full animate-in fade-in duration-200"
           >
             <div className="p-6 flex items-center gap-3">
               <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
@@ -89,8 +90,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ))}
             </nav>
 
-            <div className="p-4 border-t border-white/5">
-              <div className="bg-white/5 rounded-2xl p-4 flex items-center gap-3">
+            <div className="p-4 border-t border-border">
+              <div className="bg-muted rounded-2xl p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
                   <User className="w-5 h-5 text-blue-400" />
                 </div>
@@ -116,7 +117,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0a0a0a]/50 backdrop-blur-md sticky top-0 z-45">
+        <header className="h-20 border-b border-border flex items-center justify-between px-8 bg-background/50 backdrop-blur-md sticky top-0 z-45">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -126,7 +127,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
-            <div className="hidden md:flex items-center bg-white/5 rounded-full px-4 py-2 w-96 border border-white/5 group focus-within:border-blue-500/50 transition-all">
+            <div className="hidden md:flex items-center bg-muted rounded-full px-4 py-2 w-96 border border-border group focus-within:border-blue-500/50 transition-all">
               <Search className="w-4 h-4 text-zinc-500" />
               <input
                 type="text"
@@ -137,11 +138,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-4 relative">
+            <ThemeToggle />
             <div className="relative">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="relative hover:bg-white/5"
+                className="relative hover:bg-muted"
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
               >
                 <Bell className="w-5 h-5 text-zinc-400" />
@@ -158,7 +160,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-96 bg-zinc-950 border border-white/10 rounded-2xl p-4 shadow-2xl z-55 backdrop-blur-xl"
+                    className="absolute right-0 mt-2 w-96 bg-popover border border-border text-popover-foreground rounded-2xl p-4 shadow-2xl z-55 backdrop-blur-xl"
                   >
                     <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
                       <span className="font-bold text-sm">Notifications</span>
@@ -196,7 +198,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </AnimatePresence>
             </div>
             
-            <div className="h-8 w-px bg-white/5 mx-2"></div>
+            <div className="h-8 w-px border-l border-border mx-2"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium tracking-wide">Enterprise Vault v2.4</p>
