@@ -60,10 +60,8 @@ export class AuthService {
       }
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.userService.createUser({
       ...userData,
-      password: hashedPassword,
       role: data.role || Role.SCIENTIST,
       departmentId,
     });
