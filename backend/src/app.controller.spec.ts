@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return operational status', () => {
+      expect(appController.getHello()).toBe('Secure Formulation VCS API v1.0 Operational');
     });
   });
 });
