@@ -40,20 +40,20 @@ export default function ComparePage() {
     <div className="space-y-8 pb-20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
+          <Button variant="ghost" onClick={() => router.back()} className="hover:bg-muted text-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
-          <h1 className="text-3xl font-bold">Version Comparison Engine</h1>
+          <h1 className="text-3xl font-bold text-foreground">Version Comparison Engine</h1>
         </div>
-        <div className="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/10 shadow-2xl">
+        <div className="flex items-center gap-4 bg-card px-6 py-3 rounded-2xl border border-border shadow-md">
            <div className="flex flex-col text-right">
-             <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Base</span>
-             <span className="font-bold text-blue-400">v{v1.versionNumber}</span>
+             <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Base</span>
+             <span className="font-bold text-blue-600 dark:text-blue-400">v{v1.versionNumber}</span>
            </div>
-           <ArrowRight className="w-4 h-4 text-zinc-600" />
+           <ArrowRight className="w-4 h-4 text-muted-foreground" />
            <div className="flex flex-col">
-             <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Target</span>
-             <span className="font-bold text-emerald-400">v{v2.versionNumber}</span>
+             <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Target</span>
+             <span className="font-bold text-emerald-600 dark:text-emerald-400">v{v2.versionNumber}</span>
            </div>
         </div>
       </div>
@@ -63,78 +63,78 @@ export default function ComparePage() {
         <section className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
              <FlaskConical className="w-5 h-5 text-blue-500" />
-             <h2 className="text-xl font-bold tracking-tight uppercase text-zinc-400 text-sm tracking-[0.2em]">Molecular Composition Changes</h2>
+             <h2 className="text-xl font-bold tracking-tight uppercase text-muted-foreground text-sm tracking-[0.2em]">Molecular Composition Changes</h2>
           </div>
           
           <div className="grid grid-cols-2 gap-8">
              {/* Left: Base Version */}
              <div className="space-y-4">
-               {v1.ingredients.map((ing: any) => (
-                 <Card key={ing.id} className="bg-white/5 border-white/10 opacity-60">
-                   <CardContent className="p-4 flex justify-between items-center">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-mono text-zinc-500">{ing.ingredient.code}</span>
-                        <span className="font-bold">{ing.ingredient.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="block font-bold">{ing.weight} {ing.unit}</span>
-                        <span className="text-xs text-zinc-500">{ing.percentage}%</span>
-                      </div>
-                   </CardContent>
-                 </Card>
-               ))}
+                {v1.ingredients.map((ing: any) => (
+                  <Card key={ing.id} className="bg-card border-border opacity-70">
+                    <CardContent className="p-4 flex justify-between items-center">
+                       <div className="flex flex-col">
+                         <span className="text-xs font-mono text-muted-foreground">{ing.ingredient.code}</span>
+                         <span className="font-bold text-foreground">{ing.ingredient.name}</span>
+                       </div>
+                       <div className="text-right">
+                         <span className="block font-bold text-foreground">{ing.weight} {ing.unit}</span>
+                         <span className="text-xs text-muted-foreground">{ing.percentage}%</span>
+                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
              </div>
 
              {/* Right: Target Version with Diffs */}
              <div className="space-y-4">
-               {v2.ingredients.map((ing: any) => {
-                 const prev = v1.ingredients.find((i: any) => i.ingredientId === ing.ingredientId);
-                 const weightDiff = prev ? ing.weight - prev.weight : ing.weight;
-                 const percDiff = prev ? ing.percentage - prev.percentage : ing.percentage;
+                {v2.ingredients.map((ing: any) => {
+                  const prev = v1.ingredients.find((i: any) => i.ingredientId === ing.ingredientId);
+                  const weightDiff = prev ? ing.weight - prev.weight : ing.weight;
+                  const percDiff = prev ? ing.percentage - prev.percentage : ing.percentage;
 
-                 return (
-                   <motion.div 
-                     key={ing.id} 
-                     initial={{ x: 20, opacity: 0 }} 
-                     animate={{ x: 0, opacity: 1 }}
-                     transition={{ duration: 0.3 }}
-                   >
-                     <Card className={`border-white/10 transition-all ${
-                       !prev ? 'bg-emerald-500/10 border-emerald-500/30' : 
-                       weightDiff !== 0 ? 'bg-amber-500/10 border-amber-500/30' : 
-                       'bg-white/5 border-white/10'
-                     }`}>
-                       <CardContent className="p-4 flex justify-between items-center relative overflow-hidden">
-                          {!prev && <Badge className="absolute top-0 right-0 rounded-none rounded-bl-lg bg-emerald-600 text-[8px] uppercase tracking-widest font-bold">NEWLY ADDED</Badge>}
-                          
-                          <div className="flex flex-col">
-                            <span className={`text-xs font-mono ${!prev ? 'text-emerald-400' : 'text-zinc-500'}`}>{ing.ingredient.code}</span>
-                            <span className="font-bold">{ing.ingredient.name}</span>
-                          </div>
-                          
-                          <div className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                               <span className="font-bold">{ing.weight} {ing.unit}</span>
-                               {weightDiff !== 0 && (
-                                 <span className={`text-xs font-bold px-1 rounded flex items-center ${weightDiff > 0 ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'}`}>
-                                   {weightDiff > 0 ? '+' : ''}{weightDiff.toFixed(2)}
-                                 </span>
-                               )}
-                            </div>
-                            <div className="flex items-center justify-end gap-2 text-xs">
-                               <span className="text-zinc-500">{ing.percentage}%</span>
-                               {percDiff !== 0 && (
-                                 <span className={`font-bold ${percDiff > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                   ({percDiff > 0 ? '+' : ''}{percDiff.toFixed(1)}%)
-                                 </span>
-                               )}
-                            </div>
-                          </div>
-                       </CardContent>
-                     </Card>
-                   </motion.div>
-                 );
-               })}
+                  return (
+                    <motion.div 
+                      key={ing.id} 
+                      initial={{ x: 20, opacity: 0 }} 
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Card className={`border-border transition-all ${
+                        !prev ? 'bg-emerald-500/10 dark:bg-emerald-500/5 border-emerald-500/30' : 
+                        weightDiff !== 0 ? 'bg-amber-500/10 dark:bg-amber-500/5 border-amber-500/30' : 
+                        'bg-card border-border'
+                      }`}>
+                        <CardContent className="p-4 flex justify-between items-center relative overflow-hidden">
+                           {!prev && <Badge className="absolute top-0 right-0 rounded-none rounded-bl-lg bg-emerald-600 text-white text-[8px] uppercase tracking-widest font-bold">NEWLY ADDED</Badge>}
+                           
+                           <div className="flex flex-col">
+                             <span className={`text-xs font-mono ${!prev ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>{ing.ingredient.code}</span>
+                             <span className="font-bold text-foreground">{ing.ingredient.name}</span>
+                           </div>
+                           
+                           <div className="text-right">
+                             <div className="flex items-center justify-end gap-2 text-foreground">
+                                <span className="font-bold">{ing.weight} {ing.unit}</span>
+                                {weightDiff !== 0 && (
+                                  <span className={`text-xs font-bold px-1 rounded flex items-center ${weightDiff > 0 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' : 'text-rose-600 dark:text-rose-400 bg-rose-500/10'}`}>
+                                    {weightDiff > 0 ? '+' : ''}{weightDiff.toFixed(2)}
+                                  </span>
+                                )}
+                             </div>
+                             <div className="flex items-center justify-end gap-2 text-xs">
+                                <span className="text-muted-foreground">{ing.percentage}%</span>
+                                {percDiff !== 0 && (
+                                  <span className={`font-bold ${percDiff > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    ({percDiff > 0 ? '+' : ''}{percDiff.toFixed(1)}%)
+                                  </span>
+                                )}
+                             </div>
+                           </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
              </div>
           </div>
         </section>
@@ -143,7 +143,7 @@ export default function ComparePage() {
         <section className="space-y-4">
            <div className="flex items-center gap-2 mb-4">
               <Hash className="w-5 h-5 text-blue-500" />
-              <h2 className="text-xl font-bold tracking-tight uppercase text-zinc-400 text-sm tracking-[0.2em]">Operational Dynamics Comparison</h2>
+              <h2 className="text-xl font-bold tracking-tight uppercase text-muted-foreground text-sm tracking-[0.2em]">Operational Dynamics Comparison</h2>
            </div>
 
            <div className="space-y-6">
@@ -157,25 +157,25 @@ export default function ComparePage() {
 
                 return (
                   <div key={step.id} className="grid grid-cols-2 gap-8 relative">
-                    <Card className="bg-white/5 border-white/10 opacity-40 grayscale">
+                    <Card className="bg-card border-border opacity-55 grayscale">
                        <CardContent className="p-4 flex gap-4">
-                          <div className="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-xs font-mono">{prevStep?.stepNumber ?? '?'}</div>
-                          <p className="text-xs text-zinc-400 line-clamp-2">{prevStep?.description ?? 'No corresponding step in base version'}</p>
+                          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-mono text-muted-foreground">{prevStep?.stepNumber ?? '?'}</div>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{prevStep?.description ?? 'No corresponding step in base version'}</p>
                        </CardContent>
                     </Card>
                     
                     {/* The connector */}
                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                       <div className={`p-2 rounded-full backdrop-blur-xl border ${hasChanged ? 'border-amber-500/50 bg-amber-500/20 animate-pulse' : 'border-emerald-500/50 bg-emerald-500/20'}`}>
-                          {hasChanged ? <AlertTriangle className="w-4 h-4 text-amber-500" /> : <Check className="w-4 h-4 text-emerald-500" />}
+                       <div className={`p-2 rounded-full backdrop-blur-xl border ${hasChanged ? 'border-amber-500/50 bg-amber-500/20' : 'border-emerald-500/50 bg-emerald-500/20'}`}>
+                          {hasChanged ? <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-500" /> : <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />}
                        </div>
                     </div>
 
-                    <Card className={`border-white/10 ${hasChanged ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/5 border-white/10'}`}>
+                    <Card className={`border-border ${hasChanged ? 'bg-amber-500/5 border-amber-500/20' : 'bg-card border-border'}`}>
                        <CardContent className="p-4 flex flex-col gap-4">
                           <div className="flex gap-4">
-                            <div className="w-8 h-8 rounded bg-blue-600/20 flex items-center justify-center text-xs font-bold text-blue-400 border border-blue-500/30">{step.stepNumber}</div>
-                            <p className="text-sm">{step.description}</p>
+                            <div className="w-8 h-8 rounded bg-blue-600/10 flex items-center justify-center text-xs font-bold text-blue-600 dark:text-blue-400 border border-blue-600/20">{step.stepNumber}</div>
+                            <p className="text-sm text-foreground">{step.description}</p>
                           </div>
                           <div className="grid grid-cols-3 gap-3">
                              {[
@@ -183,13 +183,13 @@ export default function ComparePage() {
                                { label: 'PRESS', val: step.pressure, old: prevStep?.pressure, unit: 'bar' },
                                { label: 'TIME', val: step.mixingTime, old: prevStep?.mixingTime, unit: 'min' },
                              ].map((param, i) => (
-                               <div key={i} className="bg-black/40 p-2 rounded border border-white/5">
-                                 <p className="text-[9px] text-zinc-500 font-bold tracking-widest">{param.label}</p>
-                                 <div className="flex items-baseline gap-1">
+                               <div key={i} className="bg-muted p-2 rounded border border-border">
+                                 <p className="text-[9px] text-muted-foreground font-bold tracking-widest">{param.label}</p>
+                                 <div className="flex items-baseline gap-1 text-foreground">
                                    <span className="text-sm font-bold tabular-nums">{param.val}</span>
-                                   <span className="text-[10px] text-zinc-600">{param.unit}</span>
+                                   <span className="text-[10px] text-muted-foreground">{param.unit}</span>
                                    {param.old !== param.val && param.old !== undefined && (
-                                     <span className={`text-[10px] font-bold ${param.val > param.old ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                     <span className={`text-[10px] font-bold ${param.val > param.old ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                        ({param.val > param.old ? '↑' : '↓'})
                                      </span>
                                    )}

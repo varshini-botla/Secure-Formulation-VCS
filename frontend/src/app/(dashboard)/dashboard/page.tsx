@@ -40,6 +40,18 @@ export default function DashboardPage() {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkTheme();
+    
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const fetchDashboard = async () => {
     try {
@@ -72,14 +84,14 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">VCS Intelligence Overview</h1>
-          <p className="text-zinc-500 mt-1">Real-time status of formulation lifecycle and compliance.</p>
+          <p className="text-muted-foreground mt-1">Real-time status of formulation lifecycle and compliance.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10">
+          <Button variant="outline" className="hover:bg-muted border-border">
             <FileText className="w-4 h-4 mr-2" />
             Export Audit
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20" onClick={() => router.push('/formulations/create')}>
+          <Button className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/10 text-white" onClick={() => router.push('/formulations/create')}>
             <Plus className="w-4 h-4 mr-2" />
             New Formulation
           </Button>
@@ -100,18 +112,18 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
           >
-            <Card className="bg-white/5 border-white/10 backdrop-blur-sm hover:border-white/20 transition-all group">
+            <Card className="bg-card border-border hover:border-border/80 transition-all group">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm text-zinc-500 font-medium tracking-wide uppercase">{stat.label}</p>
-                    <h3 className="text-3xl font-bold mt-1 tabular-nums">{stat.val}</h3>
+                    <p className="text-sm text-muted-foreground font-medium tracking-wide uppercase">{stat.label}</p>
+                    <h3 className="text-3xl font-bold mt-1 tabular-nums text-foreground">{stat.val}</h3>
                   </div>
                   <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color}`}>
                     <stat.icon className="w-6 h-6" />
                   </div>
                 </div>
-                <div className="mt-4 flex items-center text-xs text-zinc-400">
+                <div className="mt-4 flex items-center text-xs text-muted-foreground">
                   <TrendingUp className="w-3 h-3 text-emerald-500 mr-1" />
                   <span className="text-emerald-500 font-bold">+12%</span>
                   <span className="ml-2 mt-0.5">vs last month</span>
@@ -124,7 +136,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Analytics Chart */}
-        <Card className="lg:col-span-2 bg-white/5 border-white/10 backdrop-blur-sm">
+        <Card className="lg:col-span-2 bg-card border-border">
           <CardHeader>
             <CardTitle>Formulation Velocity</CardTitle>
             <CardDescription>New versions created per month</CardDescription>
@@ -138,12 +150,17 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                <XAxis dataKey="name" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'} />
+                <XAxis dataKey="name" stroke={isDark ? '#a1a1aa' : '#71717a'} fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke={isDark ? '#a1a1aa' : '#71717a'} fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#18181b', borderRadius: '12px', border: '1px solid #ffffff10' }}
-                  itemStyle={{ color: '#fff' }}
+                  contentStyle={{ 
+                    backgroundColor: isDark ? '#18181b' : '#ffffff', 
+                    borderRadius: '12px', 
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+                    color: isDark ? '#f4f4f5' : '#18181b'
+                  }}
+                  itemStyle={{ color: isDark ? '#f4f4f5' : '#18181b' }}
                 />
                 <Area type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
               </AreaChart>
@@ -152,7 +169,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Activity */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle>Compliance Feed</CardTitle>
             <CardDescription>Latest system-wide actions</CardDescription>
@@ -160,21 +177,21 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-6">
               {recentActivity.map((act) => (
-                <div key={act.id} className="relative pl-6 pb-2 border-l border-white/10 last:border-0 last:pb-0">
+                <div key={act.id} className="relative pl-6 pb-2 border-l border-border last:border-0 last:pb-0">
                   <div className="absolute top-0 -left-[5px] w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div>
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between items-start">
-                      <span className="text-sm font-semibold">{act.user}</span>
-                      <span className="text-[10px] text-zinc-500 font-mono">{act.time}</span>
+                      <span className="text-sm font-semibold text-foreground">{act.user}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">{act.time}</span>
                     </div>
-                    <p className="text-sm text-zinc-400">
-                      {act.action} in <span className="text-blue-400 font-medium">#{act.target}</span>
+                    <p className="text-sm text-muted-foreground">
+                      {act.action} in <span className="text-blue-600 dark:text-blue-400 font-medium">#{act.target}</span>
                     </p>
                     <div className="mt-1">
-                      <Badge variant="outline" className={`text-[10px] py-0 border-white/10 ${
-                        act.status === 'APPROVED' ? 'text-emerald-400 bg-emerald-400/5' : 
-                        act.status === 'SUBMITTED' ? 'text-blue-400 bg-blue-400/5' : 
-                        'text-zinc-500 bg-zinc-500/5'
+                      <Badge variant="outline" className={`text-[10px] py-0 border-border ${
+                        act.status === 'APPROVED' ? 'text-emerald-500 bg-emerald-500/5 dark:text-emerald-400' : 
+                        act.status === 'SUBMITTED' ? 'text-blue-500 bg-blue-500/5 dark:text-blue-400' : 
+                        'text-muted-foreground bg-muted'
                       }`}>
                         {act.status}
                       </Badge>
@@ -183,7 +200,7 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <Button variant="ghost" className="w-full mt-6 text-zinc-500 hover:text-white hover:bg-white/5 text-sm uppercase tracking-widest font-bold">
+            <Button variant="ghost" className="w-full mt-6 text-muted-foreground hover:text-foreground hover:bg-muted text-xs uppercase tracking-widest font-bold">
               View Audit History
             </Button>
           </CardContent>

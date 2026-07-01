@@ -80,8 +80,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                     pathname === item.href 
-                      ? 'bg-blue-600/10 text-blue-400 border border-blue-600/20' 
-                      : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                      ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-600/20' 
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   <item.icon className="w-5 h-5 transition-transform group-hover:scale-110" />
@@ -93,18 +93,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="p-4 border-t border-border">
               <div className="bg-muted rounded-2xl p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
-                  <User className="w-5 h-5 text-blue-400" />
+                  <User className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{user.firstName} {user.lastName}</p>
-                  <p className="text-xs text-zinc-500 truncate capitalize">{user.role.toLowerCase()}</p>
+                  <p className="text-xs text-muted-foreground truncate capitalize">{user.role.toLowerCase()}</p>
                 </div>
                 <button
                   onClick={() => {
                     logout();
                     router.push('/login');
                   }}
-                  className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                  className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
@@ -123,16 +123,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               variant="ghost"
               size="icon"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="md:flex hover:bg-white/5"
+              className="md:flex hover:bg-muted"
             >
               {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
             <div className="hidden md:flex items-center bg-muted rounded-full px-4 py-2 w-96 border border-border group focus-within:border-blue-500/50 transition-all">
-              <Search className="w-4 h-4 text-zinc-500" />
+              <Search className="w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search formulations, ingredients, or versions..."
-                className="bg-transparent border-none focus:ring-0 text-sm px-3 w-full text-zinc-300 placeholder:text-zinc-600"
+                className="bg-transparent border-none focus:ring-0 text-sm px-3 w-full text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </div>
@@ -146,9 +146,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="relative hover:bg-muted"
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
               >
-                <Bell className="w-5 h-5 text-zinc-400" />
+                <Bell className="w-5 h-5 text-muted-foreground" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 right-2 w-4 h-4 bg-blue-600 text-[10px] text-white rounded-full flex items-center justify-center font-bold border-2 border-[#0a0a0a]">
+                  <span className="absolute top-2 right-2 w-4 h-4 bg-blue-600 text-[10px] text-white rounded-full flex items-center justify-center font-bold border-2 border-background">
                     {unreadCount}
                   </span>
                 )}
@@ -162,12 +162,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     exit={{ opacity: 0, y: 10 }}
                     className="absolute right-0 mt-2 w-96 bg-popover border border-border text-popover-foreground rounded-2xl p-4 shadow-2xl z-55 backdrop-blur-xl"
                   >
-                    <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+                    <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
                       <span className="font-bold text-sm">Notifications</span>
                       {unreadCount > 0 && (
                         <button 
                           onClick={markAllAsRead}
-                          className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium transition-colors"
                         >
                           Mark all as read
                         </button>
@@ -175,18 +175,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                     <div className="max-h-[300px] overflow-y-auto space-y-3 pr-1">
                       {notifications.length === 0 ? (
-                        <p className="text-xs text-zinc-500 text-center py-6">No notifications</p>
+                        <p className="text-xs text-muted-foreground text-center py-6">No notifications</p>
                       ) : (
                         notifications.map((n) => (
                           <div 
                             key={n.id} 
                             onClick={() => !n.isRead && markAsRead(n.id)}
                             className={`p-3 rounded-xl cursor-pointer transition-all ${
-                              n.isRead ? 'bg-transparent hover:bg-white/5' : 'bg-blue-600/10 hover:bg-blue-600/15 border border-blue-600/20'
+                              n.isRead ? 'bg-transparent hover:bg-muted' : 'bg-blue-600/10 hover:bg-blue-600/15 border border-blue-600/20'
                             }`}
                           >
-                            <p className="text-xs text-zinc-200">{n.message}</p>
-                            <span className="text-[10px] text-zinc-500 mt-1 block">
+                            <p className="text-xs text-foreground">{n.message}</p>
+                            <span className="text-[10px] text-muted-foreground mt-1 block">
                               {new Date(n.createdAt).toLocaleTimeString()}
                             </span>
                           </div>
@@ -202,7 +202,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium tracking-wide">Enterprise Vault v2.4</p>
-                <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">System Operational</p>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">System Operational</p>
               </div>
             </div>
           </div>
